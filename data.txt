@@ -1,4 +1,4 @@
-false;1;Gotoschool;20/11/2020;Pending;
-false;2;Day di ia;03/12/2020;Pending;
-false;3;Gohome;20/12/2020;Pending;
-false;4;Wakeup;19/09/2020;Pending;
+false;1;Take laundry;10/16/2020 14:39:20;Addr: 15 Le Duan St;
+false;2;Go home;10/16/2020 17:00:00;Buy lunch;
+false;3;English Class;10/11/2020 19:00:00;Mr.Tien;
+false;4;Linux Class;10/9/2020 15:00:00;Mrs.Tien;

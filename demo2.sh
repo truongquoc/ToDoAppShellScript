@@ -65,15 +65,15 @@ while true ; do
 # adjust width & height below for your screen 900x600 default for 1920x1080 HD screen
 # also adjust font="14" below if blue title text is too small or too large
 Record=(`yad \
-    --title "websync - Compare local scripts to those published on internet." --list \
+    --title "Planner Application" --list \
         --text '<span foreground="blue" font="14"> \
         Click column heading to sort.\
-        Select record before clicking: Insert / Edit / Delete</span>' \
-        --width=1200 --height=600 --center --radiolist -separator="$IFS" \
-        --button="Insert before":10 --button="Edit":20 --button="Delete":30 --button="Run":40 \
-        --button="Cancel ALL":50 --button="Save":60 --search-column=3 \
-        --column "Select" --column "Stt" --column "Name" \
-        --column "Due day" --column "Status" \
+        Select record before clicking: Insert / Delete</span>' \
+        --width=900 --height=600 --center --radiolist -separator="$IFS" \
+        --button="Insert before":10 --button="Delete":30 \
+        --button="Exit":50 --button="Save":60 --search-column=3 \
+        --column "Select" --column "ID" --column "Name" \
+        --column "Due day" --column "Description" \
         "${ListArr[@]}"`)
 Action=$?
 
@@ -102,15 +102,15 @@ if [[ $Action == 10 ]] || [[ $Action == 20 ]] || [[ $Action == 30 ]] ; then
 fi
 
 # Insert before || or Edit ?
-if [[ $Action == 10 ]] || [[ $Action == 20 ]] ; then
+if [[ $Action == 10 ]]; then
 
     # --text="Set fields and click OK to update" 
     # Note if there is a space at end of line, next line generates invalid command error from yad
-    NewRecArr=(`yad --width=900 --height=300 --title="Link file to Website Address" \
+    NewRecArr=(`yad --width=900 --height=300 --title="Insert a task" \
         --form --center \
-        --field="Name" --field="Due day":DT \
-        --field="Status" \
-        ${RecArr[2]} ${RecArr[3]} ${RecArr[4]}`)
+        --field="Name" \
+        --field="Description" \
+        ${RecArr[2]} ${RecArr[4]}`)
     ret=$?
 
     # Cancel =252, OK = 0
@@ -119,15 +119,33 @@ if [[ $Action == 10 ]] || [[ $Action == 20 ]] ; then
         # Create new list entry and renumber
     ((TransCount++)) # Update number of changes
         let i=1      # Base 0 array, record number is second field
+        
 
+    IncomingTime=$(zenity --forms --title="Add Time" \
+	--separator=":" \
+	--add-entry="Hour" \
+	--add-entry="Minute" \
+	--add-entry="Second" \ )
+
+    IncomingDate=$(zenity --forms --title="Add Date" \
+	--separator=":" \
+	--add-calendar="Date" \ )
+
+    Incoming="$IncomingDate $IncomingTime"
+    name="${NewRecArr[0]}"
+    export Incoming
+    export name
+    export 
+  ./notify.sh &
+  echo "The message is: $Incoming"
     while [ $i -lt $ListArrCnt ] ; do
         if [ ${ListArr[$i]} -eq ${RecArr[1]} ]; then
         # We have matching record number to insert before
             NewArr+=( false )
             NewArr+=( "${ListArr[$i]}" )
             NewArr+=( "${NewRecArr[0]}" )
+            NewArr+=( "${Incoming}" )
             NewArr+=( "${NewRecArr[1]}" )
-            NewArr+=( "${NewRecArr[2]}" )
         fi
         let j=$(( $i-1 ))
         let k=$(( $j+$RecArrCnt ))
@@ -168,7 +186,7 @@ elif [[ $Action == 30 ]] ; then
         --text '<span foreground="blue" font="14">Click OK to confirm delete.</span>' \
         --form --center \
         --field="Name":RO --field="Due day":RO \
-        --field="Status":RO \
+        --field="Description":RO \
         ${RecArr[2]} ${RecArr[3]} ${RecArr[4]}
     ret=$?
 
@@ -221,8 +239,8 @@ elif [[ $Action == 50 ]] || [[ $Action == 252 ]] ; then
 # Save changes?
 elif [[ $Action == 60 ]] ; then
     # Remove file
-    rm -f ~/Linux/data.txt
-    touch ~/Linux/data.txt
+    rm -f ~/APIDocumatation/ProjectLInux/Linux/data.txt
+    touch ~/APIDocumatation/ProjectLInux/Linux/data.txt
     #Save
     item=""
     n=1
@@ -232,7 +250,7 @@ elif [[ $Action == 60 ]] ; then
     	n=$((n+1))
     	if [[ $n > 5 ]];
     	then
-    		echo $item >> ~/Linux/data.txt
+    		echo $item >> ~/APIDocumatation/ProjectLInux/Linux/data.txt
     		n=1
     		item=""
     	fi
