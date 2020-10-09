@@ -46,16 +46,12 @@ done
 }
 
 OLDIFS="$IFS"
-IFS=" "
+IFS="|"
 ListArr=()
 
 # TODO: Replace this section with IFS=' ' read -ra CfgArr < /home/$USER/bin/.websync
 
-#ListArr=("${ListArr[@]}" false "1" "Gotoschool" "20/11/2020" "Pending")
-#ListArr=("${ListArr[@]}" false "2" "Gohome" "20/12/2020" "Pending")
-#ListArr=("${ListArr[@]}" false "3" "Wakeup" "19/09/2020" "Pending")
-
-while IFS="|" read -r select stt name dueDay status; do
+while IFS=";" read -r select stt name dueDay status; do
       ListArr+=( "$select" "$stt" "$name" "$dueDay"  "$status" )
 done < <(sort -t'|' -k2 data.txt)
 
@@ -69,15 +65,15 @@ while true ; do
 # adjust width & height below for your screen 900x600 default for 1920x1080 HD screen
 # also adjust font="14" below if blue title text is too small or too large
 Record=(`yad \
-    --title "Planner Application" --list \
+    --title "websync - Compare local scripts to those published on internet." --list \
         --text '<span foreground="blue" font="14"> \
         Click column heading to sort.\
         Select record before clicking: Insert / Edit / Delete</span>' \
-        --width=1200 --height=600 --center --radiolist\
+        --width=1200 --height=600 --center --radiolist -separator="$IFS" \
         --button="Insert before":10 --button="Edit":20 --button="Delete":30 --button="Run":40 \
         --button="Cancel ALL":50 --button="Save":60 --search-column=3 \
-        --column "Select" --column "Stt" --column "Name" --column "Due day"\
-        --column "Status" \
+        --column "Select" --column "Stt" --column "Name" \
+        --column "Due day" --column "Status" \
         "${ListArr[@]}"`)
 Action=$?
 
@@ -108,13 +104,12 @@ fi
 # Insert before || or Edit ?
 if [[ $Action == 10 ]] || [[ $Action == 20 ]] ; then
 
-    RecArr[3]="Recalc"
     # --text="Set fields and click OK to update" 
     # Note if there is a space at end of line, next line generates invalid command error from yad
     NewRecArr=(`yad --width=900 --height=300 --title="Link file to Website Address" \
         --form --center \
-        --field="File name":FL --field="Status":RO \
-        --field="Website Address":TXT \
+        --field="Name" --field="Due day":DT \
+        --field="Status" \
         ${RecArr[2]} ${RecArr[3]} ${RecArr[4]}`)
     ret=$?
 
@@ -155,7 +150,7 @@ if [[ $Action == 10 ]] || [[ $Action == 20 ]] ; then
         if [ ${ListArr[$i]} -eq ${RecArr[1]} ]; then
         # We have matching record number
         ListArr[++i]="${NewRecArr[0]}"
-        ListArr[++i]="New"
+        ListArr[++i]="${NewRecArr[1]}"
         ListArr[++i]="${NewRecArr[2]}"
         let i=$(($ListArrCnt + 1)) # force exit from while loop
         else
@@ -172,8 +167,7 @@ elif [[ $Action == 30 ]] ; then
     yad --width=900 --height=300 --title="Do you really want to delete this record?" \
         --text '<span foreground="blue" font="14">Click OK to confirm delete.</span>' \
         --form --center \
-        --field="Name":RO \
-        --field="Due day":RO \
+        --field="Name":RO --field="Due day":RO \
         --field="Status":RO \
         ${RecArr[2]} ${RecArr[3]} ${RecArr[4]}
     ret=$?
@@ -184,7 +178,7 @@ elif [[ $Action == 30 ]] ; then
     ((TransCount++))
         let i=1
     while [ $i -lt $ListArrCnt ] ; do
-        if [[ ${ListArr[$i]} -eq ${RecArr[1]} ]]; then
+        if [ ${ListArr[$i]} -eq ${RecArr[1]} ]; then
         # We have matching record number
         j=$(($i - 1))
         k=$(($j + $RecArrCnt))
@@ -229,12 +223,12 @@ elif [[ $Action == 60 ]] ; then
     # Remove file
     rm -f ~/Linux/data.txt
     touch ~/Linux/data.txt
-    # Save
+    #Save
     item=""
     n=1
     for i in ${ListArr[@]}
     do
-    	item+="$i|"
+    	item+="$i;"
     	n=$((n+1))
     	if [[ $n > 5 ]];
     	then
@@ -254,3 +248,4 @@ done # End of while loop
 IFS="$OLDIFS"
 
 exit
+
